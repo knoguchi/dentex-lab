@@ -112,7 +112,7 @@
 <header><div class="bar">
   <div class="brand">dentex-lab</div>
   <nav>
-    <a href="#terms"><span lang="en">Key words</span><span lang="ja">用語</span></a>
+    <a href="#terms"><span lang="en">Method</span><span lang="ja">手法</span></a>
     <a href="#purpose"><span lang="en">Purpose</span><span lang="ja">目的</span></a>
     <a href="#summary"><span lang="en">Summary</span><span lang="ja">サマリー</span></a>
     <a href="#arch"><span lang="en">Architecture</span><span lang="ja">アーキテクチャ</span></a>
@@ -144,7 +144,7 @@
 
 <section id="terms">
   <div class="kicker">01</div>
-  <h2><span lang="en">The method in five steps, and the words it needs</span><span lang="ja">手法を 5 ステップで。その中で出てくる用語</span></h2>
+  <h2><span lang="en">Method</span><span lang="ja">手法</span></h2>
   <ol class="steps" lang="en">
     <li><b>The problem is "object detection".</b> Not "is there a cavity in this x-ray?" but "<em>where</em> are the problems, and <em>which kind</em> is each?" The answer is a set of boxes with names.</li>
     <li><b>The model is Faster R-CNN.</b> A well-known box-finding model built from CNNs. It proposes candidate boxes, then judges each one. It is a program; what makes it useful are its millions of learned numbers ("weights").</li>
@@ -159,7 +159,7 @@
     <li><b>学習＝答え付きで、繰り返す（教師あり学習）。</b> DENTEX のX線 705 枚に歯科医の四角が付いていて、これが答え。モデルが当てる → 損失で間違いの量を測る → 重みを少し直す。705 枚を 1 周するのが 1 エポック。10 周した。</li>
     <li><b>測る＝見たことのないX線で mAP。</b> 50 枚は隠しておく。各エポックの後、その 50 枚で四角当ての標準スコア mAP を出す。一番良かったエポックを採用。</li>
   </ol>
-  <h3><span lang="en">The words, one by one</span><span lang="ja">用語を 1 つずつ</span></h3>
+  <h3><span lang="en">Terms</span><span lang="ja">用語</span></h3>
   <div class="terms">
     <div class="term"><b>CNN</b><i>Convolutional Neural Network</i>
       <span lang="en">The basic building block of image AI. Slides a small window over the picture to find edges, then shapes, then textures. Stacks of these layers make a "neural network".</span>
@@ -189,8 +189,8 @@
       <span lang="en">Epoch: one pass through all 705 learning x-rays. Loss: a single number for "how wrong was the model" on them. Learning = repeating epochs to make loss go down.</span>
       <span lang="ja">エポック：学習用 705 枚を全部 1 回見ること。損失：その写真で「どれだけ間違えたか」の数。学習とは、エポックを繰り返して損失を下げること。</span></div>
     <div class="term"><b>mAP</b><i>mean Average Precision &nbsp;(0 – 1)</i>
-      <span lang="en">The standard score for box-finding. A box is "right" if it overlaps the dentist's box enough and names the right problem. The score rewards few false alarms <em>and</em> few misses, averaged over the 4 kinds. <b>mAP@0.5</b> = overlap of at least half counts (easy rule). <b>mAP@[.5:.95]</b> = also demands precise box placement (strict rule).</span>
-      <span lang="ja">四角当ての標準スコア。歯科医の四角と十分重なり、問題の名前も合っていれば「正解」。誤報が少なく、見逃しも少ないほど高い。4 種類で平均。<b>mAP@0.5</b> ＝ 半分以上重なれば正解（ゆるい採点）。<b>mAP@[.5:.95]</b> ＝ 四角の位置の正確さも要求（厳しい採点）。</span></div>
+      <span lang="en">The standard score for box-finding. A box is "right" if it overlaps the dentist's box enough and names the right problem. The score rewards few false alarms <em>and</em> few misses, averaged over the 4 kinds. <b>mAP@0.5</b> = overlap of at least half counts (easy rule). <b>mAP@[.5:.95]</b> = also demands precise box placement (strict rule).<br><em>Our 0.481 does not mean "48% correct".</em> It is one number for "few false alarms AND few misses", averaged over the 4 kinds. 1.0 = found everything, no false alarms. For cavities the model finds about half and 7 of 10 boxes it draws are false alarms, so that kind scores 0.25 and pulls the average down.</span>
+      <span lang="ja">四角当ての標準スコア。歯科医の四角と十分重なり、問題の名前も合っていれば「正解」。誤報が少なく、見逃しも少ないほど高い。4 種類で平均。<b>mAP@0.5</b> ＝ 半分以上重なれば正解（ゆるい採点）。<b>mAP@[.5:.95]</b> ＝ 四角の位置の正確さも要求（厳しい採点）。<br><em>今回の 0.481 は「48% 正解」ではない。</em>「誤報が少ない、かつ見逃しが少ない」を 1 つの数にしたもので、4 種類の平均。1.0 ＝ 全部見つけて誤報ゼロ。虫歯はモデルが半分しか見つけず、描いた四角の 7 割が誤報なので 0.25。これが平均を引き下げている。</span></div>
   </div>
 </section>
 
@@ -209,10 +209,10 @@
 
 <section id="summary">
   <div class="kicker">03</div>
-  <h2><span lang="en">How we did it &amp; what happened</span><span lang="ja">やり方と結果</span></h2>
+  <h2><span lang="en">Summary</span><span lang="ja">まとめ</span></h2>
   <div class="grid2">
     <div class="card">
-      <h3 style="margin-top:0"><span lang="en">How</span><span lang="ja">やり方</span></h3>
+      <h3 style="margin-top:0"><span lang="en">Method</span><span lang="ja">手法</span></h3>
       <ul lang="en">
         <li>Dentists' boxes are the answer key. The model guesses, checks the key, and fixes itself — thousands of times. (<dfn data-k="supervised">supervised learning</dfn>)</li>
         <li>We start from a model that already knows how to find everyday objects (<dfn data-k="coco">COCO</dfn>) and only swap its last part to say "cavity" instead of "dog". (<dfn data-k="finetune">fine-tuning</dfn>)</li>
@@ -225,14 +225,14 @@
       </ul>
     </div>
     <div class="card">
-      <h3 style="margin-top:0"><span lang="en">What happened</span><span lang="ja">結果</span></h3>
+      <h3 style="margin-top:0"><span lang="en">Results</span><span lang="ja">結果</span></h3>
       <ul lang="en">
-        <li>Best after pass 5: score <span id="s-map50"></span> out of 1 on the easy rule. After that it starts memorising instead of learning. (<dfn data-k="overfit">overfitting</dfn>)</li>
+        <li>Best after pass 5: mAP@0.5 = <span id="s-map50"></span>. Not "48% correct": it is a combined false-alarm and miss score, 1.0 = perfect. After pass 5 it memorises instead of learning. (<dfn data-k="overfit">overfitting</dfn>)</li>
         <li>Stuck teeth are easy: it finds 9 out of 10. Cavities are hard: it finds about half, and also flags many healthy teeth.</li>
         <li>It often mixes up "cavity" and "deep cavity" — they look alike.</li>
       </ul>
       <ul lang="ja">
-        <li>5 周目が最高：ゆるい採点で 1 点満点中 <span id="s-map50-ja"></span>。それ以降は学ぶのではなく丸暗記し始める。（<dfn data-k="overfit">過学習</dfn>）</li>
+        <li>5 周目が最高：mAP@0.5 = <span id="s-map50-ja"></span>。「48% 正解」ではなく、誤報と見逃しを合わせた点で 1.0 が満点。5 周目以降は学ぶのではなく丸暗記し始める。（<dfn data-k="overfit">過学習</dfn>）</li>
         <li>埋まった歯は簡単：10 本中 9 本見つける。虫歯は難しい：半分くらいしか見つけず、健康な歯にも印を付ける。</li>
         <li>「虫歯」と「深い虫歯」をよく取り違える。見た目が似ている。</li>
       </ul>
@@ -242,7 +242,7 @@
 
 <section id="arch">
   <div class="kicker">04</div>
-  <h2><span lang="en">Inside the model</span><span lang="ja">モデルの中身</span></h2>
+  <h2><span lang="en">Model</span><span lang="ja">モデル</span></h2>
   <p class="note" lang="en">The model works in two steps: first "something might be here", then "what is it?". Everything except the last box was already trained on everyday photos; we only teach the last box. (<dfn data-k="frcnn">Faster R-CNN</dfn>)</p>
   <p class="note" lang="ja">モデルは 2 段階で動く。まず「ここに何かありそう」、次に「それは何か」。最後の箱以外は日常写真で学習済みで、教えるのは最後の箱だけ。（<dfn data-k="frcnn">Faster R-CNN</dfn>）</p>
   <div class="pipe">
@@ -262,10 +262,10 @@
 
 <section id="data">
   <div class="kicker">05</div>
-  <h2><span lang="en">The x-rays</span><span lang="ja">使ったX線写真</span></h2>
+  <h2><span lang="en">Data</span><span lang="ja">データ</span></h2>
   <div class="grid2">
     <div class="chart">
-      <h4><span lang="en">How many boxes of each kind the model learned from</span><span lang="ja">学習に使った四角の数（種類別）</span></h4>
+      <h4><span lang="en">Training boxes per class</span><span lang="ja">学習用の四角の数（種類別）</span></h4>
       <div id="chart-classes"></div><div class="tip"></div>
     </div>
     <ul class="note">
@@ -281,7 +281,7 @@
 
 <section id="infer">
   <div class="kicker">06</div>
-  <h2><span lang="en">Try it: the model looks at new x-rays</span><span lang="ja">実際に見てみる：モデルが新しいX線を見る</span></h2>
+  <h2><span lang="en">Inference</span><span lang="ja">推論</span></h2>
   <p class="note" lang="en">Six test x-rays the model never learned from. Dashed boxes = what the dentists marked (<dfn data-k="gt">ground truth</dfn>). Solid boxes = what the model says, with how sure it is (1.00 = certain). Keys <kbd>1</kbd>–<kbd>4</kbd> switch view, <kbd>←</kbd>/<kbd>→</kbd> switch x-ray.</p>
   <p class="note" lang="ja">学習に使っていないテスト用X線 6 枚。破線＝歯科医の印（<dfn data-k="gt">正解</dfn>）。実線＝モデルの答えと自信の度合い（1.00 ＝ 確実）。キー <kbd>1</kbd>〜<kbd>4</kbd> で表示切替、<kbd>←</kbd>/<kbd>→</kbd> で写真切替。</p>
   <div class="viewer">
@@ -316,10 +316,10 @@
 
 <section id="results">
   <div class="kicker">07</div>
-  <h2><span lang="en">Results, in detail</span><span lang="ja">結果の詳細</span></h2>
+  <h2><span lang="en">Results</span><span lang="ja">結果</span></h2>
   <div class="grid2">
-    <div class="chart"><h4><span lang="en">Mistakes while learning (</span><span lang="ja">学習中の間違いの量（</span><dfn data-k="loss"><span lang="en">loss</span><span lang="ja">損失</span></dfn><span lang="en">) — lower is better</span><span lang="ja">）— 低いほど良い</span></h4><div id="chart-loss"></div><div class="tip"></div></div>
-    <div class="chart"><h4><span lang="en">Score on the 50 test x-rays — higher is better</span><span lang="ja">テスト用 50 枚でのスコア — 高いほど良い</span></h4><div id="chart-map"></div><div class="tip"></div></div>
+    <div class="chart"><h4><span lang="en">Training error (</span><span lang="ja">学習中の誤差（</span><dfn data-k="loss"><span lang="en">loss</span><span lang="ja">損失</span></dfn><span lang="en">), lower is better</span><span lang="ja">）、低いほど良い</span></h4><div id="chart-loss"></div><div class="tip"></div></div>
+    <div class="chart"><h4><span lang="en">mAP on the 50 test x-rays, higher is better</span><span lang="ja">テスト用 50 枚での mAP、高いほど良い</span></h4><div id="chart-map"></div><div class="tip"></div></div>
   </div>
   <ul class="note">
     <li lang="en">Left: every pass, the model makes fewer mistakes on the x-rays it learns from. That never stops going down.</li>
@@ -330,12 +330,12 @@
     <li lang="ja">なので 5 周目のモデルを採用。</li>
   </ul>
 
-  <h3><span lang="en">Which kinds does it get right?</span><span lang="ja">どの種類を正しく当てたか</span></h3>
+  <h3><span lang="en">Confusion matrix</span><span lang="ja">混同行列</span></h3>
   <p class="note" lang="en">Rows: what the dentists said. Columns: what the model said. The diagonal is correct. The "nothing" row = model drew a box where there was no problem. The "nothing" column = model missed a real problem. (<dfn data-k="confusion">confusion matrix</dfn>)</p>
   <p class="note" lang="ja">行：歯科医の答え。列：モデルの答え。対角線が正解。「なし」の行＝問題がない所にモデルが四角を描いた。「なし」の列＝本当の問題をモデルが見逃した。（<dfn data-k="confusion">混同行列</dfn>）</p>
   <div class="cm" id="cm"></div>
 
-  <h3><span lang="en">Per kind</span><span lang="ja">種類ごとの成績</span></h3>
+  <h3><span lang="en">Per class</span><span lang="ja">種類別</span></h3>
   <table id="tbl-perclass">
     <tr><th><span lang="en">kind</span><span lang="ja">種類</span></th><th class="n"><dfn data-k="map"><span lang="en">score</span><span lang="ja">スコア</span></dfn></th><th class="n"><span lang="en">real cases</span><span lang="ja">実際の数</span></th><th class="n"><span lang="en">found</span><span lang="ja">見つけた</span></th><th class="n"><span lang="en">false alarms</span><span lang="ja">誤報</span></th><th class="n"><span lang="en">missed</span><span lang="ja">見逃し</span></th><th class="n"><dfn data-k="precision"><span lang="en">how often right</span><span lang="ja">当たる率</span></dfn></th><th class="n"><dfn data-k="recall"><span lang="en">how many found</span><span lang="ja">見つける率</span></dfn></th></tr>
   </table>
@@ -351,9 +351,9 @@
 
 <section id="gloss">
   <div class="kicker">08</div>
-  <h2><span lang="en">Words used on this page</span><span lang="ja">このページの用語</span></h2>
-  <p class="note" lang="en">Hover any dotted word above to see this. Technical name in brackets.</p>
-  <p class="note" lang="ja">上の点線付きの言葉にマウスを乗せても表示される。かっこ内は専門用語。</p>
+  <h2><span lang="en">Glossary</span><span lang="ja">用語集</span></h2>
+  <p class="note" lang="en">Dotted words above show these on hover.</p>
+  <p class="note" lang="ja">本文の点線付きの言葉にマウスを乗せると表示される。</p>
   <div class="gloss" id="gloss-list"></div>
 </section>
 
