@@ -90,6 +90,17 @@
   #gtip { position: fixed; z-index: 20; max-width: 320px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px;
           padding: 8px 11px; font-size: 14px; line-height: 1.5; display: none; pointer-events: none; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
   #gtip b { display: block; color: var(--accent); margin-bottom: 2px; }
+  .steps { font-size: 16px; padding-left: 22px; max-width: 900px; }
+  .steps li { margin: 8px 0; color: var(--text-secondary); }
+  .steps li b { color: var(--text-primary); }
+  .steps em { font-style: normal; color: var(--text-primary); border-bottom: 1px solid var(--text-muted); }
+  .terms { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 800px) { .terms { grid-template-columns: 1fr; } }
+  .term { background: var(--surface-1); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: 15px; }
+  .term > b { display: block; font-size: 20px; }
+  .term > i { display: block; font-style: normal; color: var(--accent); font-size: 13px; margin-bottom: 6px; }
+  .term > span { color: var(--text-secondary); }
+  .term em { font-style: normal; color: var(--text-primary); }
   .gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; font-size: 14px; }
   .gloss div { padding: 6px 0; border-bottom: 1px solid var(--line); }
   .gloss b { color: var(--text-primary); }
@@ -101,13 +112,14 @@
 <header><div class="bar">
   <div class="brand">dentex-lab</div>
   <nav>
+    <a href="#terms"><span lang="en">Key words</span><span lang="ja">用語</span></a>
     <a href="#purpose"><span lang="en">Purpose</span><span lang="ja">目的</span></a>
     <a href="#summary"><span lang="en">Summary</span><span lang="ja">サマリー</span></a>
     <a href="#arch"><span lang="en">Architecture</span><span lang="ja">アーキテクチャ</span></a>
     <a href="#data"><span lang="en">Data</span><span lang="ja">データ</span></a>
     <a href="#infer"><span lang="en">Inference</span><span lang="ja">推論</span></a>
     <a href="#results"><span lang="en">Results</span><span lang="ja">結果の詳細</span></a>
-    <a href="#gloss"><span lang="en">Words</span><span lang="ja">用語</span></a>
+    <a href="#gloss"><span lang="en">Glossary</span><span lang="ja">用語集</span></a>
   </nav>
   <div class="lang"><button id="btn-en" class="on" onclick="setLang('en')">EN</button><button id="btn-ja" onclick="setLang('ja')">日本語</button></div>
 </div></header>
@@ -116,7 +128,7 @@
 <div id="gtip"></div>
 
 <section id="top" style="padding-top:60px">
-  <div class="kicker">PyTorch · torchvision · Faster R-CNN · DENTEX</div>
+  <div class="kicker"><span lang="en">Built with</span><span lang="ja">使ったもの：</span> PyTorch · torchvision · Faster R-CNN · DENTEX</div>
   <h1 lang="en">Teaching a computer to spot cavities on dental x-rays</h1>
   <h1 lang="ja">コンピュータに歯のX線写真から虫歯を見つけさせる</h1>
   <p class="lead" lang="en">We take a <dfn data-k="pretrained">pretrained</dfn> picture-finding model, show it 705 x-rays that dentists already marked up, and then test it on 50 new x-rays it has never seen.</p>
@@ -130,21 +142,73 @@
   </div>
 </section>
 
-<section id="purpose">
+<section id="terms">
   <div class="kicker">01</div>
+  <h2><span lang="en">The method in five steps, and the words it needs</span><span lang="ja">手法を 5 ステップで。その中で出てくる用語</span></h2>
+  <ol class="steps" lang="en">
+    <li><b>The problem is "object detection".</b> Not "is there a cavity in this x-ray?" but "<em>where</em> are the problems, and <em>which kind</em> is each?" The answer is a set of boxes with names.</li>
+    <li><b>The model is Faster R-CNN.</b> A well-known box-finding model built from CNNs. It proposes candidate boxes, then judges each one. It is a program; what makes it useful are its millions of learned numbers ("weights").</li>
+    <li><b>We don't start from zero: fine-tuning.</b> torchvision gives us Faster R-CNN with weights already learned on COCO, 330,000 everyday photos. It can already find things. We replace only its last part and teach it our 4 kinds of tooth problem.</li>
+    <li><b>Learning = supervised, by repetition.</b> DENTEX gives 705 x-rays with dentists' boxes as the answer key. The model guesses, the loss measures how wrong it was, the weights get nudged. One pass over all 705 is an epoch; we do 10.</li>
+    <li><b>Measuring = mAP on x-rays it never saw.</b> 50 x-rays are kept hidden. After each epoch we score the model on them with mAP, the standard box-finding score. The best epoch wins.</li>
+  </ol>
+  <ol class="steps" lang="ja">
+    <li><b>問題は「物体検出」。</b>「このX線に虫歯はあるか？」ではなく「問題は<em>どこに</em>あり、<em>どの種類</em>か？」。答えは名前付きの四角の集まり。</li>
+    <li><b>モデルは Faster R-CNN。</b> CNN を組み合わせた有名な四角当てモデル。候補の四角を出し、1 つずつ判定する。モデル自体はプログラムで、役に立つのは学習で決まった何百万個もの数（「重み」）。</li>
+    <li><b>ゼロからは始めない：ファインチューニング。</b> torchvision には、日常写真 33 万枚（COCO）で学習済みの重み付き Faster R-CNN が入っている。物を見つける力はもうある。最後の部分だけ取り替えて、歯の問題 4 種類を教える。</li>
+    <li><b>学習＝答え付きで、繰り返す（教師あり学習）。</b> DENTEX のX線 705 枚に歯科医の四角が付いていて、これが答え。モデルが当てる → 損失で間違いの量を測る → 重みを少し直す。705 枚を 1 周するのが 1 エポック。10 周した。</li>
+    <li><b>測る＝見たことのないX線で mAP。</b> 50 枚は隠しておく。各エポックの後、その 50 枚で四角当ての標準スコア mAP を出す。一番良かったエポックを採用。</li>
+  </ol>
+  <h3><span lang="en">The words, one by one</span><span lang="ja">用語を 1 つずつ</span></h3>
+  <div class="terms">
+    <div class="term"><b>CNN</b><i>Convolutional Neural Network</i>
+      <span lang="en">The basic building block of image AI. Slides a small window over the picture to find edges, then shapes, then textures. Stacks of these layers make a "neural network".</span>
+      <span lang="ja">画像 AI の基本部品。小さな窓を写真の上でずらしながら、輪郭 → 形 → 模様の順に見つける。この層を何十段も重ねたものが「ニューラルネットワーク」。</span></div>
+    <div class="term"><b>R-CNN</b><i>Region-based CNN &nbsp;(<span lang="en">not Recurrent</span><span lang="ja">Recurrent ではない</span>)</i>
+      <span lang="en">A way to find <em>where</em> things are, not just <em>what</em> is in the picture: first propose candidate regions (boxes), then run a CNN on each region to say what it is. <b>Faster R-CNN</b> (2015) is the fast version where the proposals are also made by a network. This project uses it.</span>
+      <span lang="ja">写真に「何が」あるかだけでなく「どこに」あるかを見つける方式。まず候補の領域（四角）を出し、各領域を CNN で判定する。<b>Faster R-CNN</b>（2015 年）は候補出しもネットワークでやる高速版。このプロジェクトはこれを使う。</span></div>
+    <div class="term"><b>RPN</b><i>Region Proposal Network</i>
+      <span lang="en">The small network inside Faster R-CNN that proposes the candidate boxes: "something might be here". Hundreds per picture.</span>
+      <span lang="ja">Faster R-CNN の中で候補の四角を出す小さなネットワーク。「ここに何かあるかも」を 1 枚あたり何百個も提案する。</span></div>
+    <div class="term"><b>ResNet-50 · FPN</b><i>Residual Network, 50 layers · Feature Pyramid Network</i>
+      <span lang="en">The big CNN that turns the x-ray into feature maps (ResNet-50), plus a trick that looks at the picture at several zoom levels so both small cavities and large teeth are found (FPN). Together: the "feature finder".</span>
+      <span lang="ja">X線を特徴の地図に変える大きな CNN（ResNet-50）と、小さな虫歯も大きな歯も見つかるように複数の拡大率で見る工夫（FPN）。合わせて「特徴を見つける部分」。</span></div>
+    <div class="term"><b>PyTorch · torchvision</b><i>Meta's machine-learning library · its image add-on</i>
+      <span lang="en">The software we write the project in. torchvision ships a ready-made Faster R-CNN and the pretrained weights, so we write ~200 lines, not 20,000.</span>
+      <span lang="ja">プロジェクトを書くためのソフト。torchvision には出来合いの Faster R-CNN と学習済みの重みが入っているので、書くのは 2 万行ではなく約 200 行。</span></div>
+    <div class="term"><b>COCO</b><i>Common Objects in Context</i>
+      <span lang="en">330,000 everyday photos (dogs, cars, cups) with boxes drawn by people. Our model was first taught on these. It already knows "how to find things"; we teach it "what a cavity looks like".</span>
+      <span lang="ja">人が四角を描いた日常写真 33 万枚（犬・車・コップ）。モデルはまずこれで教えられている。「物の見つけ方」は知っているので、教えるのは「虫歯の見た目」だけ。</span></div>
+    <div class="term"><b>Fine-tuning</b><i><span lang="en">also: transfer learning</span><span lang="ja">転移学習とも</span></i>
+      <span lang="en">Borrowing a model that was taught on COCO and teaching it a little more for our job. Much faster and needs far fewer pictures than starting from zero.</span>
+      <span lang="ja">COCO で教えたモデルを借りて、自分の仕事のために少し追加で教えること。ゼロから始めるよりずっと速く、写真も少なくて済む。</span></div>
+    <div class="term"><b>DENTEX</b><i>Dental Enumeration and Diagnosis on Panoramic X-rays (MICCAI 2023)</i>
+      <span lang="en">The public set of 705 + 50 panoramic x-rays with dentists' boxes that we learn from. MICCAI is the main medical-imaging AI conference.</span>
+      <span lang="ja">歯科医の四角が付いたパノラマX線 705 ＋ 50 枚の公開データ。MICCAI は医用画像 AI の主要な学会。</span></div>
+    <div class="term"><b>Epoch · Loss</b><i><span lang="en">one pass · amount of error</span><span lang="ja">1 周 · 間違いの量</span></i>
+      <span lang="en">Epoch: one pass through all 705 learning x-rays. Loss: a single number for "how wrong was the model" on them. Learning = repeating epochs to make loss go down.</span>
+      <span lang="ja">エポック：学習用 705 枚を全部 1 回見ること。損失：その写真で「どれだけ間違えたか」の数。学習とは、エポックを繰り返して損失を下げること。</span></div>
+    <div class="term"><b>mAP</b><i>mean Average Precision &nbsp;(0 – 1)</i>
+      <span lang="en">The standard score for box-finding. A box is "right" if it overlaps the dentist's box enough and names the right problem. The score rewards few false alarms <em>and</em> few misses, averaged over the 4 kinds. <b>mAP@0.5</b> = overlap of at least half counts (easy rule). <b>mAP@[.5:.95]</b> = also demands precise box placement (strict rule).</span>
+      <span lang="ja">四角当ての標準スコア。歯科医の四角と十分重なり、問題の名前も合っていれば「正解」。誤報が少なく、見逃しも少ないほど高い。4 種類で平均。<b>mAP@0.5</b> ＝ 半分以上重なれば正解（ゆるい採点）。<b>mAP@[.5:.95]</b> ＝ 四角の位置の正確さも要求（厳しい採点）。</span></div>
+  </div>
+</section>
+
+<section id="purpose">
+  <div class="kicker">02</div>
   <h2><span lang="en">Purpose</span><span lang="ja">目的</span></h2>
   <ul class="lead">
     <li lang="en">Learn the whole loop by hand: teach a model, then use it on a new picture.</li>
     <li lang="ja">モデルを教えて、新しい写真で使う。この一連の流れを自分の手でやってみる。</li>
     <li lang="en">The job: draw a box around every tooth that has a problem and say which problem — <dfn data-k="caries">cavity</dfn>, <dfn data-k="deep">deep cavity</dfn>, <dfn data-k="peri">root-tip infection</dfn>, or <dfn data-k="impacted">stuck tooth</dfn>.</li>
     <li lang="ja">仕事：問題のある歯を四角で囲み、どの問題かを言う。<dfn data-k="caries">虫歯</dfn>、<dfn data-k="deep">深い虫歯</dfn>、<dfn data-k="peri">根の先の病気</dfn>、<dfn data-k="impacted">埋まった歯</dfn>の 4 種類。</li>
-    <li lang="en">Keep it small: three short programs — load the data, teach the model, run it on one x-ray.</li>
-    <li lang="ja">小さく作る：プログラムは 3 本だけ。データを読む、モデルを教える、X線 1 枚で動かす。</li>
+    <li lang="en">Keep it small: three short PyTorch programs — load the data, teach the model, run it on one x-ray.</li>
+    <li lang="ja">小さく作る：PyTorch のプログラム 3 本だけ。データを読む、モデルを教える、X線 1 枚で動かす。</li>
   </ul>
 </section>
 
 <section id="summary">
-  <div class="kicker">02</div>
+  <div class="kicker">03</div>
   <h2><span lang="en">How we did it &amp; what happened</span><span lang="ja">やり方と結果</span></h2>
   <div class="grid2">
     <div class="card">
@@ -177,7 +241,7 @@
 </section>
 
 <section id="arch">
-  <div class="kicker">03</div>
+  <div class="kicker">04</div>
   <h2><span lang="en">Inside the model</span><span lang="ja">モデルの中身</span></h2>
   <p class="note" lang="en">The model works in two steps: first "something might be here", then "what is it?". Everything except the last box was already trained on everyday photos; we only teach the last box. (<dfn data-k="frcnn">Faster R-CNN</dfn>)</p>
   <p class="note" lang="ja">モデルは 2 段階で動く。まず「ここに何かありそう」、次に「それは何か」。最後の箱以外は日常写真で学習済みで、教えるのは最後の箱だけ。（<dfn data-k="frcnn">Faster R-CNN</dfn>）</p>
@@ -197,7 +261,7 @@
 </section>
 
 <section id="data">
-  <div class="kicker">04</div>
+  <div class="kicker">05</div>
   <h2><span lang="en">The x-rays</span><span lang="ja">使ったX線写真</span></h2>
   <div class="grid2">
     <div class="chart">
@@ -216,7 +280,7 @@
 </section>
 
 <section id="infer">
-  <div class="kicker">05</div>
+  <div class="kicker">06</div>
   <h2><span lang="en">Try it: the model looks at new x-rays</span><span lang="ja">実際に見てみる：モデルが新しいX線を見る</span></h2>
   <p class="note" lang="en">Six test x-rays the model never learned from. Dashed boxes = what the dentists marked (<dfn data-k="gt">ground truth</dfn>). Solid boxes = what the model says, with how sure it is (1.00 = certain). Keys <kbd>1</kbd>–<kbd>4</kbd> switch view, <kbd>←</kbd>/<kbd>→</kbd> switch x-ray.</p>
   <p class="note" lang="ja">学習に使っていないテスト用X線 6 枚。破線＝歯科医の印（<dfn data-k="gt">正解</dfn>）。実線＝モデルの答えと自信の度合い（1.00 ＝ 確実）。キー <kbd>1</kbd>〜<kbd>4</kbd> で表示切替、<kbd>←</kbd>/<kbd>→</kbd> で写真切替。</p>
@@ -251,7 +315,7 @@
 </section>
 
 <section id="results">
-  <div class="kicker">06</div>
+  <div class="kicker">07</div>
   <h2><span lang="en">Results, in detail</span><span lang="ja">結果の詳細</span></h2>
   <div class="grid2">
     <div class="chart"><h4><span lang="en">Mistakes while learning (</span><span lang="ja">学習中の間違いの量（</span><dfn data-k="loss"><span lang="en">loss</span><span lang="ja">損失</span></dfn><span lang="en">) — lower is better</span><span lang="ja">）— 低いほど良い</span></h4><div id="chart-loss"></div><div class="tip"></div></div>
@@ -286,7 +350,7 @@
 </section>
 
 <section id="gloss">
-  <div class="kicker">07</div>
+  <div class="kicker">08</div>
   <h2><span lang="en">Words used on this page</span><span lang="ja">このページの用語</span></h2>
   <p class="note" lang="en">Hover any dotted word above to see this. Technical name in brackets.</p>
   <p class="note" lang="ja">上の点線付きの言葉にマウスを乗せても表示される。かっこ内は専門用語。</p>
