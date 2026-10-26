@@ -61,7 +61,6 @@ uv run python infer.py data/raw/validation_data/quadrant_enumeration_disease/xra
   min_size 800 に再リサイズし、ImageNet の統計で正規化する。
 - **データ拡張**：左右反転のみ。パノラマX線を反転すると左右の象限が入れ替わるが、診断ラベルには影響しない。
 - **評価指標**：mAP@[.5:.95]（COCO 方式）。少数クラス（Periapical Lesion、158 ボックス）は最も低くなる。
-- **医療機器ではない。** 研究用データセット、非商用ライセンス、検証セットも小さい。
 
 ## 初回実行の結果（10 エポック、MPS、約 50 分）
 
