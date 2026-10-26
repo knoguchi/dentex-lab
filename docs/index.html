@@ -54,8 +54,8 @@
   .pipe .box { background: var(--surface-1); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; flex: 1 1 150px; min-width: 150px; }
   .pipe .box b { display: block; font-size: 14px; }
   .pipe .box span { color: var(--text-muted); font-size: 13px; }
-  .pipe.small .box { flex: 1 1 120px; min-width: 120px; padding: 8px 10px; }
-  .pipe.small .box b { font-size: 13px; } .pipe.small .box span { font-size: 12px; }
+  .pipe.small .box { flex: 1 1 150px; min-width: 150px; padding: 12px 14px; }
+  .pipe.small .box b { font-size: 16px; } .pipe.small .box span { font-size: 14px; color: var(--text-secondary); }
   .pipe .box em { display: block; font-style: normal; font-size: 13px; font-weight: 600; margin: 2px 0 4px; }
   .pipe .box.coco { border-color: var(--accent); } .pipe .box.coco em { color: var(--accent); }
   .pipe .box.new { border-color: #d95926; } .pipe .box.new em { color: #d95926; }
@@ -248,42 +248,17 @@
 <section id="arch">
   <div class="kicker">04</div>
   <h2><span lang="en">Model</span><span lang="ja">モデル</span></h2>
-  <p class="note" lang="en">Faster R-CNN, as shipped by torchvision. First the parts, then the two flows that use them: training and inference.</p>
-  <p class="note" lang="ja">torchvision 版の Faster R-CNN。まず部品、次にそれを使う 2 つの流れ：学習と推論。</p>
-  <h3><span lang="en">Parts</span><span lang="ja">部品</span></h3>
-  <div class="legend">
-    <span><span class="sw" style="background:var(--accent)"></span><span lang="en">COCO weights, adjusted during our training</span><span lang="ja">COCO の重み、今回の学習で微調整</span></span>
-    <span><span class="sw" style="background:#d95926"></span><span lang="en">new, trained from scratch here</span><span lang="ja">新規、今回ゼロから学習</span></span>
-    <span><span class="sw" style="background:var(--text-muted)"></span><span lang="en">fixed procedure, nothing to learn</span><span lang="ja">固定の処理、学習なし</span></span>
-  </div>
-  <div class="pipe">
-    <div class="box fixed"><b><span lang="en">1. X-ray in</span><span lang="ja">1. X線を入れる</span></b><em>torchvision transform</em><span><span lang="en">shrink to 1333 px wide, normalise brightness. (During training only: random left-right flip, done before this step — data augmentation, not part of the model.)</span><span lang="ja">幅 1333 px に縮小、明るさを正規化。（学習時だけ、この前にランダム左右反転＝データ拡張。モデルの一部ではない。）</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box coco"><b><span lang="en">2. Feature maps</span><span lang="ja">2. 特徴マップ</span></b><em>ResNet-50 + FPN</em><span><span lang="en">ResNet-50: a 50-layer CNN that turns the picture into maps of edges, shapes, textures. FPN: combines its coarse and fine maps so small cavities and large teeth are both visible.</span><span lang="ja">ResNet-50：50 層の CNN。写真を輪郭・形・模様の地図に変える。FPN：その粗い地図と細かい地図を合わせ、小さな虫歯も大きな歯も見えるようにする。</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box coco"><b><span lang="en">3. Candidate boxes</span><span lang="ja">3. 候補の四角</span></b><em>RPN (Region Proposal Network)</em><span><span lang="en">a small CNN that marks "something might be here", hundreds of boxes per x-ray.</span><span lang="ja">「ここに何かあるかも」を出す小さな CNN。1 枚あたり何百個。</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box fixed"><b><span lang="en">4. Crop</span><span lang="ja">4. 切り出し</span></b><em>RoIAlign</em><span><span lang="en">cut each candidate out of the feature maps and resize to the same 7×7 grid.</span><span lang="ja">各候補を特徴マップから切り出し、同じ 7×7 の格子にそろえる。</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box new"><b><span lang="en">5. Classify + refine</span><span lang="ja">5. 判定＋位置補正</span></b><em>Box head (FastRCNNPredictor)</em><span><span lang="en">for each crop: which of the 4 problems, or nothing; and nudge the box. The COCO version answered "dog / car / …"; we replaced it with a fresh one for our 4 classes.</span><span lang="ja">切り出しごとに、4 種類のどれか／何もない、を決めて四角を微調整。COCO 版は「犬／車／…」と答える部品だったので、4 種類用の新品に取り替えた。</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box fixed"><b><span lang="en">6. Remove duplicates</span><span lang="ja">6. 重複を消す</span></b><em>NMS (non-maximum suppression)</em><span><span lang="en">several boxes on one tooth → keep the most confident, drop the rest. Then keep only boxes with confidence ≥ 0.5.</span><span lang="ja">同じ歯に四角が何個も → 一番自信のあるものだけ残す。最後に自信 0.5 以上だけ採用。</span></span></div>
-  </div>
-  <ul class="note">
-    <li lang="en">Training touches 2, 3 and 5. Everything in 2 and 3 starts from COCO and shifts a little; 5 starts random. Steps 1, 4, 6 have no learned numbers.</li>
-    <li lang="ja">学習で動くのは 2・3・5。2 と 3 は COCO の値から少しずれる。5 は乱数から始める。1・4・6 には学習する数がない。</li>
-    <li lang="en">Four error signals drive the learning: "is there something here" and "where exactly" from step 3; "which kind" and "where exactly" from step 5. Their sum is the loss curve in Results.</li>
-    <li lang="ja">学習を動かす誤差は 4 つ：3 から「何かあるか」「正確にどこか」、5 から「どの種類か」「正確にどこか」。その合計が結果セクションの損失曲線。</li>
-  </ul>
+  <p class="note" lang="en">Faster R-CNN from torchvision: proposes candidate boxes, then judges each one. Two flows use it.</p>
+  <p class="note" lang="ja">torchvision 版の Faster R-CNN：候補の四角を出し、1 つずつ判定する。これを使う流れが 2 つ。</p>
   <h3><span lang="en">Training flow</span><span lang="ja">学習の流れ</span> <code>train.py</code></h3>
   <div class="pipe small">
     <div class="box"><b><span lang="en">4 x-rays + dentists' boxes</span><span lang="ja">X線 4 枚＋歯科医の四角</span></b><span><span lang="en">random left-right flip</span><span lang="ja">ランダムに左右反転</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Steps 1 → 5</span><span lang="ja">段階 1 → 5</span></b><span><span lang="en">model guesses boxes and kinds</span><span lang="ja">モデルが四角と種類を当てる</span></span></div>
+    <div class="box"><b><span lang="en">Model guesses</span><span lang="ja">モデルが当てる</span></b><span><span lang="en">boxes and kinds</span><span lang="ja">四角と種類</span></span></div>
     <div class="arrow">→</div>
     <div class="box"><b><span lang="en">Compare with the answer</span><span lang="ja">答えと比べる</span></b><span><span lang="en">4 error numbers = loss</span><span lang="ja">誤差 4 つ＝損失</span></span></div>
     <div class="arrow">→</div>
-    <div class="box new"><b><span lang="en">Update weights</span><span lang="ja">重みを更新</span></b><span><span lang="en">in steps 2, 3, 5, a little</span><span lang="ja">段階 2・3・5 を少しだけ</span></span></div>
+    <div class="box new"><b><span lang="en">Update weights</span><span lang="ja">重みを更新</span></b><span><span lang="en">a little, toward the answer</span><span lang="ja">答えに近づく方向へ少し</span></span></div>
     <div class="arrow">↺</div>
     <div class="box"><b><span lang="en">Repeat</span><span lang="ja">繰り返す</span></b><span><span lang="en">177 batches = 1 epoch; 10 epochs, ~50 min</span><span lang="ja">177 回で 1 エポック。10 エポック、約 50 分</span></span></div>
     <div class="arrow">→</div>
@@ -295,7 +270,7 @@
     <div class="arrow">+</div>
     <div class="box"><b><span lang="en">1 x-ray</span><span lang="ja">X線 1 枚</span></b><span><span lang="en">no answer, no flip</span><span lang="ja">答えなし、反転なし</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Steps 1 → 6</span><span lang="ja">段階 1 → 6</span></b><span><span lang="en">boxes + kind + confidence</span><span lang="ja">四角＋種類＋自信</span></span></div>
+    <div class="box"><b><span lang="en">Model answers</span><span lang="ja">モデルが答える</span></b><span><span lang="en">boxes + kind + confidence</span><span lang="ja">四角＋種類＋自信</span></span></div>
     <div class="arrow">→</div>
     <div class="box"><b><span lang="en">Keep confidence ≥ 0.5</span><span lang="ja">自信 0.5 以上だけ残す</span></b><span><span lang="en">threshold is our choice</span><span lang="ja">しきい値は自分で決める</span></span></div>
     <div class="arrow">→</div>
@@ -304,8 +279,6 @@
   <ul class="note">
     <li lang="en">Training needs the answer and changes the weights. Inference has no answer and never changes anything.</li>
     <li lang="ja">学習は答えが必要で、重みを変える。推論は答えがなく、何も変えない。</li>
-    <li lang="en">Training does not run step 6 (duplicate removal): the loss is computed on all candidates. Inference runs it to get a clean picture.</li>
-    <li lang="ja">学習では段階 6（重複除去）は動かさない。損失は候補全部で計算する。推論ではきれいな結果にするために動かす。</li>
   </ul>
 </section>
 
