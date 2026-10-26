@@ -54,7 +54,12 @@
   .pipe .box { background: var(--surface-1); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; flex: 1 1 150px; min-width: 150px; }
   .pipe .box b { display: block; font-size: 14px; }
   .pipe .box span { color: var(--text-muted); font-size: 13px; }
-  .pipe .box.hl { border-color: var(--accent); }
+  .tv td:first-child { color: var(--text-muted); font-size: 13px; white-space: nowrap; }
+  .tv th:nth-child(2), .tv td:nth-child(2), .tv td:nth-child(3) { width: 42%; }
+  .pipe .box em { display: block; font-style: normal; font-size: 13px; font-weight: 600; margin: 2px 0 4px; }
+  .pipe .box.coco { border-color: var(--accent); } .pipe .box.coco em { color: var(--accent); }
+  .pipe .box.new { border-color: #d95926; } .pipe .box.new em { color: #d95926; }
+  .pipe .box.fixed em { color: var(--text-muted); }
   .pipe .arrow { align-self: center; color: var(--text-muted); }
   /* inference viewer */
   .viewer { background: var(--surface-1); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
@@ -171,8 +176,8 @@
       <span lang="en">The small network inside Faster R-CNN that proposes the candidate boxes: "something might be here". Hundreds per picture.</span>
       <span lang="ja">Faster R-CNN の中で候補の四角を出す小さなネットワーク。「ここに何かあるかも」を 1 枚あたり何百個も提案する。</span></div>
     <div class="term"><b>ResNet-50 · FPN</b><i>Residual Network, 50 layers · Feature Pyramid Network</i>
-      <span lang="en">The big CNN that turns the x-ray into feature maps (ResNet-50), plus a trick that looks at the picture at several zoom levels so both small cavities and large teeth are found (FPN). Together: the "feature finder".</span>
-      <span lang="ja">X線を特徴の地図に変える大きな CNN（ResNet-50）と、小さな虫歯も大きな歯も見つかるように複数の拡大率で見る工夫（FPN）。合わせて「特徴を見つける部分」。</span></div>
+      <span lang="en">ResNet-50: the big 50-layer CNN that turns the x-ray into feature maps. FPN: combines its coarse and fine maps so both small cavities and large teeth show up. Step 2 of the model.</span>
+      <span lang="ja">ResNet-50：X線を特徴マップに変える 50 層の大きな CNN。FPN：その粗い地図と細かい地図を合わせ、小さな虫歯も大きな歯も見えるようにする。モデルの 2 段目。</span></div>
     <div class="term"><b>PyTorch · torchvision</b><i>Meta's machine-learning library · its image add-on</i>
       <span lang="en">The software we write the project in. torchvision ships a ready-made Faster R-CNN and the pretrained weights, so we write ~200 lines, not 20,000.</span>
       <span lang="ja">プロジェクトを書くためのソフト。torchvision には出来合いの Faster R-CNN と学習済みの重みが入っているので、書くのは 2 万行ではなく約 200 行。</span></div>
@@ -243,21 +248,56 @@
 <section id="arch">
   <div class="kicker">04</div>
   <h2><span lang="en">Model</span><span lang="ja">モデル</span></h2>
-  <p class="note" lang="en">The model works in two steps: first "something might be here", then "what is it?". Everything except the last box was already trained on everyday photos; we only teach the last box. (<dfn data-k="frcnn">Faster R-CNN</dfn>)</p>
-  <p class="note" lang="ja">モデルは 2 段階で動く。まず「ここに何かありそう」、次に「それは何か」。最後の箱以外は日常写真で学習済みで、教えるのは最後の箱だけ。（<dfn data-k="frcnn">Faster R-CNN</dfn>）</p>
-  <div class="pipe">
-    <div class="box"><b><span lang="en">X-ray goes in</span><span lang="ja">X線を入れる</span></b><span><span lang="en">shrunk to 1333 px wide</span><span lang="ja">幅 1333 px に縮小</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box"><b><dfn data-k="backbone"><span lang="en">Feature finder</span><span lang="ja">特徴を見つける</span></dfn></b><span><span lang="en">edges, shapes, textures</span><span lang="ja">輪郭・形・模様</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box"><b><dfn data-k="rpn"><span lang="en">"Maybe here" boxes</span><span lang="ja">「ここかも」の四角</span></dfn></b><span><span lang="en">hundreds of guesses</span><span lang="ja">何百個もの候補</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box"><b><dfn data-k="roi"><span lang="en">Crop each box</span><span lang="ja">四角ごとに切り出す</span></dfn></b><span><span lang="en">same small size</span><span lang="ja">同じ小さなサイズに</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box hl"><b><dfn data-k="head"><span lang="en">Decide what it is</span><span lang="ja">何かを決める</span></dfn></b><span><span lang="en">the part we teach</span><span lang="ja">ここを教える</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box"><b><dfn data-k="nms"><span lang="en">Remove duplicates</span><span lang="ja">重複を消す</span></dfn></b><span><span lang="en">final answer</span><span lang="ja">最終的な答え</span></span></div>
+  <p class="note" lang="en">Faster R-CNN, as shipped by torchvision. Two stages: propose boxes, then judge each box. Below: each stage, the technology it is, and whether it was learned.</p>
+  <p class="note" lang="ja">torchvision 版の Faster R-CNN。2 段階：四角の候補を出す → 1 つずつ判定する。各段階と、その技術名と、学習したかどうか。</p>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--accent)"></span><span lang="en">COCO weights, adjusted during our training</span><span lang="ja">COCO の重み、今回の学習で微調整</span></span>
+    <span><span class="sw" style="background:#d95926"></span><span lang="en">new, trained from scratch here</span><span lang="ja">新規、今回ゼロから学習</span></span>
+    <span><span class="sw" style="background:var(--text-muted)"></span><span lang="en">fixed procedure, nothing to learn</span><span lang="ja">固定の処理、学習なし</span></span>
   </div>
+  <div class="pipe">
+    <div class="box fixed"><b><span lang="en">1. X-ray in</span><span lang="ja">1. X線を入れる</span></b><em>torchvision transform</em><span><span lang="en">shrink to 1333 px wide, normalise brightness. (During training only: random left-right flip, done before this step — data augmentation, not part of the model.)</span><span lang="ja">幅 1333 px に縮小、明るさを正規化。（学習時だけ、この前にランダム左右反転＝データ拡張。モデルの一部ではない。）</span></span></div>
+    <div class="arrow">→</div>
+    <div class="box coco"><b><span lang="en">2. Feature maps</span><span lang="ja">2. 特徴マップ</span></b><em>ResNet-50 + FPN</em><span><span lang="en">ResNet-50: a 50-layer CNN that turns the picture into maps of edges, shapes, textures. FPN: combines its coarse and fine maps so small cavities and large teeth are both visible.</span><span lang="ja">ResNet-50：50 層の CNN。写真を輪郭・形・模様の地図に変える。FPN：その粗い地図と細かい地図を合わせ、小さな虫歯も大きな歯も見えるようにする。</span></span></div>
+    <div class="arrow">→</div>
+    <div class="box coco"><b><span lang="en">3. Candidate boxes</span><span lang="ja">3. 候補の四角</span></b><em>RPN (Region Proposal Network)</em><span><span lang="en">a small CNN that marks "something might be here", hundreds of boxes per x-ray.</span><span lang="ja">「ここに何かあるかも」を出す小さな CNN。1 枚あたり何百個。</span></span></div>
+    <div class="arrow">→</div>
+    <div class="box fixed"><b><span lang="en">4. Crop</span><span lang="ja">4. 切り出し</span></b><em>RoIAlign</em><span><span lang="en">cut each candidate out of the feature maps and resize to the same 7×7 grid.</span><span lang="ja">各候補を特徴マップから切り出し、同じ 7×7 の格子にそろえる。</span></span></div>
+    <div class="arrow">→</div>
+    <div class="box new"><b><span lang="en">5. Classify + refine</span><span lang="ja">5. 判定＋位置補正</span></b><em>Box head (FastRCNNPredictor)</em><span><span lang="en">for each crop: which of the 4 problems, or nothing; and nudge the box. The COCO version answered "dog / car / …"; we replaced it with a fresh one for our 4 classes.</span><span lang="ja">切り出しごとに、4 種類のどれか／何もない、を決めて四角を微調整。COCO 版は「犬／車／…」と答える部品だったので、4 種類用の新品に取り替えた。</span></span></div>
+    <div class="arrow">→</div>
+    <div class="box fixed"><b><span lang="en">6. Remove duplicates</span><span lang="ja">6. 重複を消す</span></b><em>NMS (non-maximum suppression)</em><span><span lang="en">several boxes on one tooth → keep the most confident, drop the rest. Then keep only boxes with confidence ≥ 0.5.</span><span lang="ja">同じ歯に四角が何個も → 一番自信のあるものだけ残す。最後に自信 0.5 以上だけ採用。</span></span></div>
+  </div>
+  <ul class="note">
+    <li lang="en">Training touches 2, 3 and 5. Everything in 2 and 3 starts from COCO and shifts a little; 5 starts random. Steps 1, 4, 6 have no learned numbers.</li>
+    <li lang="ja">学習で動くのは 2・3・5。2 と 3 は COCO の値から少しずれる。5 は乱数から始める。1・4・6 には学習する数がない。</li>
+    <li lang="en">Four error signals drive the learning: "is there something here" and "where exactly" from step 3; "which kind" and "where exactly" from step 5. Their sum is the loss curve in Results.</li>
+    <li lang="ja">学習を動かす誤差は 4 つ：3 から「何かあるか」「正確にどこか」、5 から「どの種類か」「正確にどこか」。その合計が結果セクションの損失曲線。</li>
+  </ul>
+  <h3><span lang="en">Training vs. inference</span><span lang="ja">学習と推論の違い</span></h3>
+  <p class="note" lang="en">Same model, two modes. <code>train.py</code> runs the left column; <code>infer.py</code> runs the right.</p>
+  <p class="note" lang="ja">同じモデルを 2 つのモードで使う。<code>train.py</code> が左、<code>infer.py</code> が右。</p>
+  <table class="tv">
+    <tr><th></th><th><span lang="en">Training</span><span lang="ja">学習</span></th><th><span lang="en">Inference</span><span lang="ja">推論</span></th></tr>
+    <tr><td><span lang="en">Input</span><span lang="ja">入力</span></td>
+        <td lang="en">x-ray <b>plus</b> the dentists' boxes (the answer)</td><td lang="ja">X線 <b>＋</b> 歯科医の四角（答え）</td>
+        <td lang="en">x-ray only</td><td lang="ja">X線だけ</td></tr>
+    <tr><td><span lang="en">Steps run</span><span lang="ja">動く段階</span></td>
+        <td lang="en">1 → 5, with left-right flip at random</td><td lang="ja">1 → 5。ランダムに左右反転あり</td>
+        <td lang="en">1 → 6</td><td lang="ja">1 → 6</td></tr>
+    <tr><td><span lang="en">Output</span><span lang="ja">出力</span></td>
+        <td lang="en">4 error numbers (the loss), not boxes</td><td lang="ja">誤差の数 4 つ（損失）。四角は出さない</td>
+        <td lang="en">boxes, each with a kind and a confidence</td><td lang="ja">四角。それぞれに種類と自信の度合い</td></tr>
+    <tr><td><span lang="en">Weights</span><span lang="ja">重み</span></td>
+        <td lang="en">nudged after every batch of 4 x-rays (steps 2, 3, 5)</td><td lang="ja">4 枚ごとに少し更新（段階 2・3・5）</td>
+        <td lang="en">frozen; loaded from the saved epoch-5 file</td><td lang="ja">固定。保存したエポック 5 のファイルを読む</td></tr>
+    <tr><td><span lang="en">How much</span><span lang="ja">量</span></td>
+        <td lang="en">705 x-rays × 10 epochs, ~50 min</td><td lang="ja">705 枚 × 10 エポック、約 50 分</td>
+        <td lang="en">1 x-ray, about 1 second</td><td lang="ja">1 枚、約 1 秒</td></tr>
+    <tr><td><span lang="en">Done when</span><span lang="ja">終わり</span></td>
+        <td lang="en">mAP on the 50 test x-rays stops improving</td><td lang="ja">テスト 50 枚の mAP が上がらなくなったら</td>
+        <td lang="en">the picture with boxes is written</td><td lang="ja">四角を描いた画像を書き出したら</td></tr>
+  </table>
 </section>
 
 <section id="data">
@@ -420,8 +460,8 @@ const GLOSS = {
                ja: ["正解（ground truth）", "歯科医の答え。モデルの答えをこれと比べる。"]},
   frcnn:      {en: ["Faster R-CNN", "The name of this kind of two-step picture-finding model (from 2015). Still a solid, well-understood choice."],
                ja: ["Faster R-CNN", "この 2 段階で物を見つけるモデルの名前（2015 年）。今でも堅実でよく理解されている選択肢。"]},
-  backbone:   {en: ["Feature finder (ResNet-50 + FPN)", "The big first part of the model. It turns the picture into maps of edges, shapes and textures at several zoom levels."],
-               ja: ["特徴を見つける部分（ResNet-50 + FPN）", "モデルの大きな前半部分。写真を、輪郭・形・模様の地図に変える。拡大率も何段階か。"]},
+  backbone:   {en: ["ResNet-50 + FPN", "The big first part of the model. ResNet-50 turns the picture into maps of edges, shapes and textures; FPN merges its coarse and fine maps."],
+               ja: ["ResNet-50 + FPN", "モデルの大きな前半部分。ResNet-50 が写真を輪郭・形・模様の地図に変え、FPN が粗い地図と細かい地図を合わせる。"]},
   rpn:        {en: ["\"Maybe here\" boxes (Region Proposal Network)", "A small part that quickly suggests hundreds of boxes where something might be, before looking closely."],
                ja: ["「ここかも」の四角（Region Proposal Network）", "細かく見る前に、何かありそうな四角を何百個もすばやく提案する小さな部品。"]},
   roi:        {en: ["Crop each box (RoIAlign)", "Cuts out each suggested box from the feature maps and resizes it to the same small square so the next step can judge them all the same way."],
