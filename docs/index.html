@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dentex-lab — dental disease detection on panoramic x-rays</title>
+<title>dentex-lab — cavities on dental x-rays</title>
 <style>
   :root {
     color-scheme: dark;
@@ -79,7 +79,7 @@
   .chart svg { width: 100%; max-width: 560px; height: auto; display: block; }
   .chart .tip { position: absolute; pointer-events: none; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px;
                 padding: 6px 9px; font-size: 13px; display: none; white-space: nowrap; }
-  .cm { display: grid; grid-template-columns: 120px repeat(5, 1fr); gap: 3px; font-size: 13px; max-width: 640px; }
+  .cm { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 3px; font-size: 13px; max-width: 640px; }
   .cm div { padding: 8px 6px; text-align: center; border-radius: 4px; }
   .cm .h { color: var(--text-muted); font-size: 12px; }
   .cm .r { text-align: right; color: var(--text-secondary); padding-right: 10px; }
@@ -105,70 +105,60 @@
 
 <section id="top" style="padding-top:60px">
   <div class="kicker">PyTorch · torchvision · Faster R-CNN · DENTEX</div>
-  <h1 lang="en">Finding cavities on dental x-rays with a fine-tuned detector</h1>
-  <h1 lang="ja">歯科X線からう蝕を見つける：検出モデルのファインチューニング</h1>
-  <p class="lead" lang="en">A small learning project: take a COCO-pretrained Faster R-CNN, retrain its head on 705 labelled panoramic x-rays, and see what it can and cannot find.</p>
-  <p class="lead" lang="ja">小さな学習プロジェクト。COCO 学習済みの Faster R-CNN を、ラベル付きパノラマX線 705 枚で再学習し、何が見つけられて何が見つけられないかを確かめる。</p>
+  <h1 lang="en">Finding cavities on dental x-rays</h1>
+  <h1 lang="ja">歯科X線からう蝕を見つける</h1>
+  <p class="lead" lang="en">Fine-tune a COCO-pretrained Faster R-CNN on 705 labelled panoramic x-rays. See what it finds, and what it gets wrong.</p>
+  <p class="lead" lang="ja">COCO 学習済みの Faster R-CNN を、ラベル付きパノラマX線 705 枚でファインチューニング。何を見つけ、何を間違えるかを見る。</p>
   <div class="tiles">
-    <div class="tile"><div class="v" id="t-map50">—</div><div class="l">val mAP@0.5 <span lang="en">(best epoch)</span><span lang="ja">（最良エポック）</span></div></div>
+    <div class="tile"><div class="v" id="t-map50">—</div><div class="l">val mAP@0.5</div></div>
     <div class="tile"><div class="v" id="t-map">—</div><div class="l">val mAP@[.5:.95]</div></div>
-    <div class="tile"><div class="v">705 / 50</div><div class="l"><span lang="en">train / val images</span><span lang="ja">学習 / 検証 画像数</span></div></div>
+    <div class="tile"><div class="v">705 / 50</div><div class="l"><span lang="en">train / val images</span><span lang="ja">学習 / 検証 画像</span></div></div>
     <div class="tile"><div class="v">4</div><div class="l"><span lang="en">disease classes</span><span lang="ja">疾患クラス</span></div></div>
-    <div class="tile"><div class="v">~50 min</div><div class="l"><span lang="en">10 epochs on Apple MPS</span><span lang="ja">10 エポック、Apple MPS</span></div></div>
+    <div class="tile"><div class="v">~50 min</div><div class="l"><span lang="en">training, Apple MPS</span><span lang="ja">学習時間、Apple MPS</span></div></div>
   </div>
 </section>
 
 <section id="purpose">
   <div class="kicker">01</div>
-  <h2><span lang="en">Purpose</span><span lang="ja">プロジェクトの目的</span></h2>
-  <div lang="en">
-    <p class="lead">Learn, end to end, how to train an object detector and run inference with it — on a problem that is real enough to be interesting.</p>
-    <ul>
-      <li><b>Task.</b> Given a panoramic dental x-ray, draw a box around every tooth with a finding and name it: Caries, Deep Caries, Periapical Lesion, or Impacted tooth.</li>
-      <li><b>Scope.</b> Three scripts, no app framework: a dataset loader, a training loop, a single-image inference script. Everything should be readable in one sitting.</li>
-    </ul>
-  </div>
-  <div lang="ja">
-    <p class="lead">物体検出モデルの学習から推論までを一通り体験する。題材は「面白いと思える程度に本物」の問題にした。</p>
-    <ul>
-      <li><b>タスク。</b> パノラマ歯科X線を入力し、所見のある歯にボックスを描き、クラスを付ける：う蝕（Caries）、深いう蝕（Deep Caries）、根尖病変（Periapical Lesion）、埋伏歯（Impacted）。</li>
-      <li><b>範囲。</b> スクリプト 3 本、アプリフレームワークなし：データセット読み込み、学習ループ、1 枚推論。一気に読み切れる量に収める。</li>
-    </ul>
-  </div>
+  <h2><span lang="en">Purpose</span><span lang="ja">目的</span></h2>
+  <ul class="lead">
+    <li lang="en">Learn the full loop: train an object detector, then run inference with it.</li>
+    <li lang="ja">物体検出モデルの学習から推論までを一通り回す。</li>
+    <li lang="en">Task: box every tooth with a finding and name it — Caries, Deep Caries, Periapical Lesion, Impacted.</li>
+    <li lang="ja">タスク：所見のある歯をボックスで囲み、クラスを付ける。う蝕・深いう蝕・根尖病変・埋伏歯。</li>
+    <li lang="en">Three scripts: dataset loader, training loop, single-image inference.</li>
+    <li lang="ja">スクリプト 3 本：データ読み込み、学習ループ、1 枚推論。</li>
+  </ul>
 </section>
 
 <section id="summary">
   <div class="kicker">02</div>
-  <h2><span lang="en">Method &amp; results in one screen</span><span lang="ja">手法と結果のサマリー</span></h2>
+  <h2><span lang="en">Method &amp; results</span><span lang="ja">手法と結果</span></h2>
   <div class="grid2">
     <div class="card">
       <h3 style="margin-top:0"><span lang="en">Method</span><span lang="ja">手法</span></h3>
       <ul lang="en">
-        <li><b>Supervised fine-tuning.</b> Dentist-drawn boxes + diagnosis labels are the teacher signal.</li>
-        <li><b>Model.</b> torchvision <code>fasterrcnn_resnet50_fpn_v2</code> pretrained on COCO; final classifier swapped for 4 classes + background.</li>
-        <li><b>Training.</b> SGD (momentum 0.9), one-cycle LR peaking at 0.01, batch 4, 10 epochs, horizontal-flip augmentation only.</li>
-        <li><b>Selection.</b> Keep the epoch with best validation mAP@[.5:.95].</li>
+        <li>Supervised: dentist-drawn boxes + diagnosis labels are the teacher.</li>
+        <li>Faster R-CNN ResNet-50 FPN, COCO weights; swap the classifier head for 4 classes + background.</li>
+        <li>SGD, one-cycle LR 0.01, batch 4, 10 epochs, horizontal flip only.</li>
       </ul>
       <ul lang="ja">
-        <li><b>教師ありファインチューニング。</b> 歯科医が付けたボックスと診断ラベルが教師信号。</li>
-        <li><b>モデル。</b> torchvision の <code>fasterrcnn_resnet50_fpn_v2</code>（COCO 学習済み）。最終分類器を 4 クラス＋背景に差し替え。</li>
-        <li><b>学習。</b> SGD（momentum 0.9）、one-cycle で最大 LR 0.01、バッチ 4、10 エポック、拡張は左右反転のみ。</li>
-        <li><b>モデル選択。</b> 検証 mAP@[.5:.95] が最良のエポックを保存。</li>
+        <li>教師あり：歯科医のボックスと診断ラベルが教師。</li>
+        <li>Faster R-CNN ResNet-50 FPN、COCO 重み。分類ヘッドを 4 クラス＋背景に差し替え。</li>
+        <li>SGD、one-cycle LR 0.01、バッチ 4、10 エポック、拡張は左右反転のみ。</li>
       </ul>
     </div>
     <div class="card">
       <h3 style="margin-top:0"><span lang="en">Results</span><span lang="ja">結果</span></h3>
       <ul lang="en">
-        <li><b>Best at epoch 5:</b> mAP@[.5:.95] <span id="s-map"></span>, mAP@0.5 <span id="s-map50"></span>. After that, train loss keeps falling but validation stalls — overfitting on 705 images.</li>
-        <li><b>Impacted teeth are easy</b> (AP ≈ 0.55, recall 0.88): large, distinctive shape.</li>
-        <li><b>Caries is the hard one</b> (AP ≈ 0.25). The model finds most of them but also fires on many healthy teeth: 120 spurious Caries boxes across 50 images.</li>
-        <li><b>Caries vs Deep Caries get confused</b> — 10 of 32 Deep Caries were labelled plain Caries. Merging the two classes is an obvious next step.</li>
+        <li>Best at epoch 5: mAP@0.5 <span id="s-map50"></span>. Overfits after that.</li>
+        <li>Impacted teeth: easy (AP 0.55, recall 0.88). Caries: hard (AP 0.25, many false alarms).</li>
+        <li>Caries and Deep Caries get confused with each other.</li>
       </ul>
       <ul lang="ja">
-        <li><b>最良はエポック 5：</b> mAP@[.5:.95] <span id="s-map-ja"></span>、mAP@0.5 <span id="s-map50-ja"></span>。以降は train loss が下がる一方で検証は頭打ち。705 枚への過学習。</li>
-        <li><b>埋伏歯は簡単</b>（AP ≈ 0.55、再現率 0.88）：大きく形が特徴的。</li>
-        <li><b>う蝕が難しい</b>（AP ≈ 0.25）。大半は見つけるが健全歯にも反応し、50 枚で 120 個の誤検出。</li>
-        <li><b>Caries と Deep Caries を混同</b>。Deep Caries 32 個中 10 個を Caries と判定。2 クラス統合が次の一手。</li>
+        <li>最良はエポック 5：mAP@0.5 <span id="s-map50-ja"></span>。以降は過学習。</li>
+        <li>埋伏歯は簡単（AP 0.55、再現率 0.88）。う蝕は難しい（AP 0.25、誤報多い）。</li>
+        <li>う蝕と深いう蝕を互いに混同する。</li>
       </ul>
     </div>
   </div>
@@ -177,81 +167,47 @@
 <section id="arch">
   <div class="kicker">03</div>
   <h2><span lang="en">Architecture</span><span lang="ja">アーキテクチャ</span></h2>
-  <p class="note" lang="en">Two-stage detector. Stage one proposes "there might be something here" regions; stage two classifies each region and refines its box. Everything below the final classifier arrives pretrained from COCO.</p>
-  <p class="note" lang="ja">2 段階検出器。1 段目が「ここに何かあるかも」という候補領域を出し、2 段目が各領域を分類してボックスを補正する。最終分類器より手前はすべて COCO 学習済みの重みで初期化。</p>
+  <p class="note" lang="en">Two stages: propose regions, then classify each one. Only the last box is trained from scratch; the rest comes from COCO.</p>
+  <p class="note" lang="ja">2 段階：候補領域を出し、各領域を分類。ゼロから学習するのは最後の箱だけ。残りは COCO 学習済み。</p>
   <div class="pipe">
-    <div class="box"><b><span lang="en">Input x-ray</span><span lang="ja">入力X線</span></b><span>~2900×1300 px → <span lang="en">resized to</span><span lang="ja">縮小</span> 1333×600, ImageNet normalize</span></div>
+    <div class="box"><b><span lang="en">Input x-ray</span><span lang="ja">入力X線</span></b><span>~2900×1300 → 1333×600</span></div>
     <div class="arrow">→</div>
-    <div class="box"><b>ResNet-50 + FPN</b><span><span lang="en">backbone; multi-scale feature maps</span><span lang="ja">バックボーン。多スケール特徴マップ</span></span></div>
+    <div class="box"><b>ResNet-50 + FPN</b><span><span lang="en">feature maps</span><span lang="ja">特徴マップ</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b>RPN</b><span><span lang="en">region proposals (objectness + box deltas)</span><span lang="ja">候補領域（objectness + ボックス補正）</span></span></div>
+    <div class="box"><b>RPN</b><span><span lang="en">region proposals</span><span lang="ja">候補領域</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b>RoIAlign</b><span><span lang="en">crop each proposal to 7×7 features</span><span lang="ja">各候補を 7×7 特徴に切り出し</span></span></div>
+    <div class="box"><b>RoIAlign</b><span><span lang="en">crop proposals</span><span lang="ja">候補を切り出し</span></span></div>
     <div class="arrow">→</div>
-    <div class="box hl"><b><span lang="en">Box head (replaced)</span><span lang="ja">Box ヘッド（差し替え）</span></b><span>FastRCNNPredictor: 5 <span lang="en">classes</span><span lang="ja">クラス</span> (bg + 4) × box regression</span></div>
+    <div class="box hl"><b><span lang="en">Box head (replaced)</span><span lang="ja">Box ヘッド（差し替え）</span></b><span>5 <span lang="en">classes</span><span lang="ja">クラス</span> + box</span></div>
     <div class="arrow">→</div>
-    <div class="box"><b>NMS</b><span><span lang="en">drop overlapping duplicates; threshold 0.5</span><span lang="ja">重複を除去。しきい値 0.5</span></span></div>
-  </div>
-  <div class="grid2">
-    <div>
-      <h3><span lang="en">Training losses (summed)</span><span lang="ja">学習損失（合計）</span></h3>
-      <table>
-        <tr><th>loss</th><th><span lang="en">what it teaches</span><span lang="ja">何を学ばせるか</span></th></tr>
-        <tr><td><code>loss_objectness</code></td><td lang="en">RPN: is there any object at this anchor?</td><td lang="ja">RPN：このアンカーに物体があるか</td></tr>
-        <tr><td><code>loss_rpn_box_reg</code></td><td lang="en">RPN: shift the anchor onto the object</td><td lang="ja">RPN：アンカーを物体に合わせる</td></tr>
-        <tr><td><code>loss_classifier</code></td><td lang="en">head: which of the 5 classes</td><td lang="ja">ヘッド：5 クラスのどれか</td></tr>
-        <tr><td><code>loss_box_reg</code></td><td lang="en">head: final box refinement</td><td lang="ja">ヘッド：最終ボックス補正</td></tr>
-      </table>
-    </div>
-    <div>
-      <h3><span lang="en">Code shape</span><span lang="ja">コードの形</span></h3>
-<pre>model = fasterrcnn_resnet50_fpn_v2(weights="DEFAULT")
-in_f = model.roi_heads.box_predictor.cls_score.in_features
-model.roi_heads.box_predictor = FastRCNNPredictor(in_f, 5)
-
-model.train()
-loss_dict = model(images, targets)   # dict of 4 losses
-sum(loss_dict.values()).backward()
-
-model.eval()
-preds = model(images)                # boxes, labels, scores</pre>
-    </div>
+    <div class="box"><b>NMS</b><span><span lang="en">final boxes</span><span lang="ja">最終ボックス</span></span></div>
   </div>
 </section>
 
 <section id="data">
   <div class="kicker">04</div>
-  <h2><span lang="en">Training data</span><span lang="ja">学習させたデータ</span></h2>
-  <p class="note" lang="en"><a href="https://huggingface.co/datasets/ibrahimhamamci/DENTEX">DENTEX</a> (MICCAI 2023 challenge). Panoramic x-rays with COCO-style JSON; each box carries quadrant, tooth number and diagnosis. We use only the diagnosis label and only the fully-labelled subset. The full training zip is 11 GB, mostly unlabelled images, so the downloader reads the zip over HTTP Range requests and extracts just the 2.9 GB we need.</p>
-  <p class="note" lang="ja"><a href="https://huggingface.co/datasets/ibrahimhamamci/DENTEX">DENTEX</a>（MICCAI 2023 チャレンジ）。パノラマX線と COCO 形式 JSON。各ボックスに象限・歯番号・診断の 3 ラベルが付くが、使うのは診断のみ。完全ラベル付きサブセットだけ使用。学習 zip は 11 GB（大半がラベルなし画像）なので、HTTP Range リクエストで zip を読み、必要な 2.9 GB だけ展開する。</p>
+  <h2><span lang="en">Data</span><span lang="ja">データ</span></h2>
   <div class="grid2">
     <div class="chart">
-      <h4><span lang="en">Boxes per class</span><span lang="ja">クラス別ボックス数</span></h4>
+      <h4><span lang="en">Training boxes per class</span><span lang="ja">学習ボックス数（クラス別）</span></h4>
       <div id="chart-classes"></div><div class="tip"></div>
     </div>
-    <div>
-      <table>
-        <tr><th><span lang="en">split</span><span lang="ja">分割</span></th><th class="n"><span lang="en">images</span><span lang="ja">画像</span></th><th class="n"><span lang="en">boxes</span><span lang="ja">ボックス</span></th><th class="n">Caries</th><th class="n">Impacted</th><th class="n">Deep</th><th class="n">Periapical</th></tr>
-        <tr><td>train</td><td class="n">705</td><td class="n">3529</td><td class="n">2189</td><td class="n">604</td><td class="n">578</td><td class="n">158</td></tr>
-        <tr><td>val</td><td class="n">50</td><td class="n">182</td><td class="n">101</td><td class="n">40</td><td class="n">32</td><td class="n">9</td></tr>
-      </table>
-      <ul class="note">
-        <li lang="en">Heavily imbalanced: Caries is 62% of boxes, Periapical Lesion 4%. Expect the rare class to score worst.</li>
-        <li lang="ja">強い不均衡：Caries が全体の 62%、Periapical Lesion は 4%。希少クラスの精度は最も低くなる。</li>
-        <li lang="en">Images are ~2900×1300 px; we shrink to max side 1333 before the model's own resize to keep loading cheap.</li>
-        <li lang="ja">画像は約 2900×1300 px。読み込みを軽くするため、モデル内部のリサイズ前に長辺 1333 へ縮小。</li>
-        <li lang="en">Only augmentation: horizontal flip. Left/right quadrants swap, but the diagnosis does not change.</li>
-        <li lang="ja">データ拡張は左右反転のみ。象限は入れ替わるが診断は変わらない。</li>
-      </ul>
-    </div>
+    <ul class="note">
+      <li lang="en"><a href="https://huggingface.co/datasets/ibrahimhamamci/DENTEX">DENTEX</a> (MICCAI 2023): panoramic x-rays, COCO-style boxes with a diagnosis label.</li>
+      <li lang="ja"><a href="https://huggingface.co/datasets/ibrahimhamamci/DENTEX">DENTEX</a>（MICCAI 2023）：パノラマX線、COCO 形式ボックス＋診断ラベル。</li>
+      <li lang="en">705 train / 50 val images, 3529 training boxes.</li>
+      <li lang="ja">学習 705 枚 / 検証 50 枚、学習ボックス 3529 個。</li>
+      <li lang="en">Imbalanced: Caries 62%, Periapical Lesion 4%.</li>
+      <li lang="ja">不均衡：う蝕 62%、根尖病変 4%。</li>
+    </ul>
   </div>
 </section>
 
 <section id="infer">
   <div class="kicker">05</div>
-  <h2><span lang="en">Inference — what the model actually sees</span><span lang="ja">推論 — モデルは何を見ているか</span></h2>
-  <p class="note" lang="en">Six validation x-rays the model never trained on. Switch between the raw image, the dentists' ground truth (dashed), and the model's predictions (solid, with confidence). Keys: <kbd>1</kbd>–<kbd>4</kbd> change layer, <kbd>←</kbd>/<kbd>→</kbd> change case.</p>
-  <p class="note" lang="ja">学習に使っていない検証画像 6 枚。元画像、歯科医の正解（破線）、モデルの予測（実線＋確信度）を切り替えて比較。キー操作：<kbd>1</kbd>〜<kbd>4</kbd> でレイヤー、<kbd>←</kbd>/<kbd>→</kbd> で症例。</p>
+  <h2><span lang="en">Inference</span><span lang="ja">推論</span></h2>
+  <p class="note" lang="en">Six validation x-rays the model never saw. Dashed = dentists' ground truth, solid = model prediction with confidence. Keys <kbd>1</kbd>–<kbd>4</kbd> switch layer, <kbd>←</kbd>/<kbd>→</kbd> switch case.</p>
+  <p class="note" lang="ja">学習に使っていない検証画像 6 枚。破線＝歯科医の正解、実線＝モデルの予測＋確信度。キー <kbd>1</kbd>〜<kbd>4</kbd> でレイヤー、<kbd>←</kbd>/<kbd>→</kbd> で症例。</p>
   <div class="viewer">
     <div class="ctrl">
       <div class="seg" id="layer-seg">
@@ -277,61 +233,30 @@ preds = model(images)                # boxes, labels, scores</pre>
       <div><b><span lang="en">Model says</span><span lang="ja">モデルの判定</span></b><ul id="list-pred"></ul></div>
     </div>
   </div>
-  <h3><span lang="en">How to run it</span><span lang="ja">実行方法</span></h3>
-<pre>uv run python infer.py path/to/xray.png --out result.png --thresh 0.5
-# Caries             0.92  box=[2017, 762, 2307, 1045]
-# Deep Caries        0.71  box=[747, 793, 1050, 1051]
-# wrote result.png</pre>
-  <p class="note" lang="en">Inference is three lines of substance: load the checkpoint, <code>model.eval()</code>, call <code>model([image_tensor])</code>. The model's own transform handles resizing and normalisation, and NMS is already applied — you receive boxes, labels, scores and only have to pick a threshold.</p>
-  <p class="note" lang="ja">推論の本質は 3 行：チェックポイントを読み、<code>model.eval()</code>、<code>model([image_tensor])</code> を呼ぶ。リサイズと正規化はモデル内部の transform が行い、NMS も適用済み。受け取るのは boxes / labels / scores で、あとはしきい値を決めるだけ。</p>
+<pre>uv run python infer.py xray.png --out result.png --thresh 0.5</pre>
 </section>
 
 <section id="results">
   <div class="kicker">06</div>
-  <h2><span lang="en">Results in detail</span><span lang="ja">結果の詳細</span></h2>
+  <h2><span lang="en">Results</span><span lang="ja">結果の詳細</span></h2>
   <div class="grid2">
     <div class="chart"><h4><span lang="en">Validation mAP per epoch</span><span lang="ja">エポックごとの検証 mAP</span></h4><div id="chart-map"></div><div class="tip"></div></div>
-    <div class="chart"><h4><span lang="en">Training loss per epoch</span><span lang="ja">エポックごとの学習損失</span></h4><div id="chart-loss"></div><div class="tip"></div></div>
+    <div>
+      <h4 style="margin:0 0 6px;font-size:15px"><span lang="en">Confusion: truth (rows) × prediction (columns)</span><span lang="ja">混同行列：正解（行）× 予測（列）</span></h4>
+      <div class="cm" id="cm"></div>
+    </div>
   </div>
-  <p class="note" lang="en">mAP climbs for five epochs then wobbles while loss keeps dropping — the model is memorising the 705 training images. The saved checkpoint is epoch 5.</p>
-  <p class="note" lang="ja">mAP は 5 エポックまで上昇した後、損失が下がり続けるのに横ばい。705 枚を暗記し始めている。保存したのはエポック 5。</p>
-
-  <h3><span lang="en">Per-class AP across epochs</span><span lang="ja">クラス別 AP の推移</span></h3>
-  <div class="chart"><div id="chart-perclass"></div><div class="tip"></div></div>
-
-  <h3><span lang="en">Per-class detection at threshold 0.5, IoU ≥ 0.5 (val, 50 images)</span><span lang="ja">クラス別検出（しきい値 0.5、IoU ≥ 0.5、検証 50 枚）</span></h3>
   <table id="tbl-perclass">
     <tr><th><span lang="en">class</span><span lang="ja">クラス</span></th><th class="n">AP@[.5:.95]</th><th class="n">GT</th><th class="n">TP</th><th class="n">FP</th><th class="n">FN</th><th class="n"><span lang="en">precision</span><span lang="ja">適合率</span></th><th class="n"><span lang="en">recall</span><span lang="ja">再現率</span></th></tr>
   </table>
-
-  <h3><span lang="en">Confusion: ground truth (rows) vs prediction (columns)</span><span lang="ja">混同行列：正解（行）× 予測（列）</span></h3>
-  <p class="note" lang="en">Boxes are matched by overlap first, then compared by class. "none" row = predictions on nothing (false alarms); "none" column = ground truth the model missed.</p>
-  <p class="note" lang="ja">まず重なりでボックスを対応付け、次にクラスを比較。「none」行＝何もない所への予測（誤報）、「none」列＝見逃した正解。</p>
-  <div class="cm" id="cm"></div>
-
-  <h3><span lang="en">Reading the numbers</span><span lang="ja">数字の読み方</span></h3>
   <ul class="note">
-    <li lang="en"><b>Impacted:</b> precision 0.75, recall 0.88. Essentially solved for this data.</li>
-    <li lang="ja"><b>Impacted：</b>適合率 0.75、再現率 0.88。このデータではほぼ解けている。</li>
-    <li lang="en"><b>Caries:</b> recall 0.55 but precision 0.30 — 120 boxes on healthy teeth. Raising the threshold to 0.7 would trade recall for far fewer false alarms.</li>
-    <li lang="ja"><b>Caries：</b>再現率 0.55、適合率 0.30。健全歯に 120 個のボックス。しきい値を 0.7 に上げれば再現率と引き換えに誤報は大幅に減る。</li>
-    <li lang="en"><b>Deep Caries:</b> 10 of 32 were called plain Caries. The boundary between the two is a matter of depth that is hard to see at 1333 px.</li>
-    <li lang="ja"><b>Deep Caries：</b>32 個中 10 個を Caries と判定。両者の境界は病変の深さで、1333 px では見分けにくい。</li>
-    <li lang="en"><b>Periapical Lesion:</b> 9 examples in val, 158 in train. Any number here is noise.</li>
-    <li lang="ja"><b>Periapical Lesion：</b>検証 9 個、学習 158 個。この数字はノイズに近い。</li>
+    <li lang="en">Peaks at epoch 5, then train loss keeps falling while mAP stalls: memorising 705 images.</li>
+    <li lang="ja">エポック 5 がピーク。以降 train loss は下がるが mAP は横ばい：705 枚の暗記。</li>
+    <li lang="en">120 Caries boxes on healthy teeth; 10 of 32 Deep Caries called plain Caries.</li>
+    <li lang="ja">健全歯へのう蝕誤報 120 個。深いう蝕 32 個中 10 個をう蝕と判定。</li>
+    <li lang="en">Next: merge Caries + Deep Caries, stronger augmentation, lower LR.</li>
+    <li lang="ja">次：う蝕 2 クラスを統合、拡張を強化、学習率を下げる。</li>
   </ul>
-
-  <h3><span lang="en">What to try next</span><span lang="ja">次に試すこと</span></h3>
-  <ol class="note">
-    <li lang="en">Merge Caries + Deep Caries into one class; report depth separately if at all.</li>
-    <li lang="ja">Caries と Deep Caries を 1 クラスに統合。深さは別途扱う。</li>
-    <li lang="en">Stronger augmentation: brightness/contrast jitter, scale jitter, small rotations. The x-rays differ a lot in exposure.</li>
-    <li lang="ja">拡張の強化：明るさ・コントラスト、スケール、わずかな回転。X線は露出のばらつきが大きい。</li>
-    <li lang="en">Lower the peak learning rate or freeze more of the backbone; the overfitting starts early.</li>
-    <li lang="ja">最大学習率を下げる、またはバックボーンの凍結を増やす。過学習の開始が早い。</li>
-    <li lang="en">Use the 1571 unlabelled DENTEX images for self-supervised pretraining of the backbone.</li>
-    <li lang="ja">DENTEX のラベルなし 1571 枚でバックボーンを自己教師あり事前学習。</li>
-  </ol>
 </section>
 
 </main>
@@ -358,7 +283,7 @@ setLang(localStorage.getItem("lang") || (navigator.language.startsWith("ja") ? "
 
 // ---- headline numbers
 const best = R.epochs[R.best_epoch];
-for (const [id, v] of [["t-map50", best.map50], ["t-map", best.map], ["s-map", best.map], ["s-map50", best.map50], ["s-map-ja", best.map], ["s-map50-ja", best.map50]])
+for (const [id, v] of [["t-map50", best.map50], ["t-map", best.map], ["s-map50", best.map50], ["s-map50-ja", best.map50]])
   document.getElementById(id).textContent = v.toFixed(3);
 
 // ---- inference viewer
@@ -476,11 +401,6 @@ lineChart(document.getElementById("chart-map"), [
   {name: "mAP@.5", y: E.map(e => e.map50), color: "#3987e5"},
   {name: "mAP@[.5:.95]", y: E.map(e => e.map), color: "#d95926"},
 ], {ymax: 0.6});
-lineChart(document.getElementById("chart-loss"), [
-  {name: "train loss", y: E.map(e => e.loss), color: "#3987e5"},
-], {ymax: 0.8});
-lineChart(document.getElementById("chart-perclass"),
-  ORDER.map(c => ({name: c, y: E.map(e => e.per_class[c]), color: C[c]})), {ymax: 0.6});
 
 // ---- per-class table
 const tbl = document.getElementById("tbl-perclass");
