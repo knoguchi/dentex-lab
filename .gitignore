@@ -1,0 +1,5 @@
+.venv/
+data/
+checkpoints/
+result*.png
+__pycache__/

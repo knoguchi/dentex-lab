@@ -1,0 +1,19 @@
+[project]
+name = "dentex-lab"
+version = "0.1.0"
+description = "Learning project: detect caries and other dental disease on panoramic x-rays with PyTorch"
+readme = "README.md"
+authors = [
+    { name = "Kenji Noguchi", email = "tokyo246@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "huggingface-hub>=2.3.0",
+    "numpy>=2.5.4",
+    "pillow>=12.3.0",
+    "pycocotools>=2.0.11",
+    "requests>=2.34.2",
+    "torch>=2.14.1",
+    "torchmetrics>=1.9.0",
+    "torchvision>=0.29.1",
+]
