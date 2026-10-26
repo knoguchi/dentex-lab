@@ -55,7 +55,7 @@
   .pipe .box b { display: block; font-size: 14px; }
   .pipe .box span { color: var(--text-muted); font-size: 13px; }
   .pipe.small .box { flex: 1 1 150px; min-width: 150px; padding: 12px 14px; }
-  .pipe.small .box b { font-size: 16px; } .pipe.small .box span { font-size: 14px; color: var(--text-secondary); }
+  .pipe.small .box b { font-size: 16px; } .pipe.small .box em { color: var(--accent); font-size: 13px; } .pipe.small .box span { font-size: 14px; color: var(--text-secondary); }
   .pipe .box em { display: block; font-style: normal; font-size: 13px; font-weight: 600; margin: 2px 0 4px; }
   .pipe .box.coco { border-color: var(--accent); } .pipe .box.coco em { color: var(--accent); }
   .pipe .box.new { border-color: #d95926; } .pipe .box.new em { color: #d95926; }
@@ -252,27 +252,27 @@
   <p class="note" lang="ja">torchvision 版の Faster R-CNN：候補の四角を出し、1 つずつ判定する。これを使う流れが 2 つ。</p>
   <h3><span lang="en">Training flow</span><span lang="ja">学習の流れ</span> <code>train.py</code></h3>
   <div class="pipe small">
-    <div class="box"><b><span lang="en">4 x-rays + dentists' boxes</span><span lang="ja">X線 4 枚＋歯科医の四角</span></b><span><span lang="en">random left-right flip</span><span lang="ja">ランダムに左右反転</span></span></div>
+    <div class="box"><b><span lang="en">4 x-rays + dentists' boxes</span><span lang="ja">X線 4 枚＋歯科医の四角</span></b><em>DENTEX</em><span><span lang="en">random left-right flip</span><span lang="ja">ランダムに左右反転</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Model guesses</span><span lang="ja">モデルが当てる</span></b><span><span lang="en">boxes and kinds</span><span lang="ja">四角と種類</span></span></div>
+    <div class="box"><b><span lang="en">Model guesses</span><span lang="ja">モデルが当てる</span></b><em>Faster R-CNN (ResNet-50 + FPN, RPN)</em><span><span lang="en">boxes and kinds</span><span lang="ja">四角と種類</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Compare with the answer</span><span lang="ja">答えと比べる</span></b><span><span lang="en">4 error numbers = loss</span><span lang="ja">誤差 4 つ＝損失</span></span></div>
+    <div class="box"><b><span lang="en">Compare with the answer</span><span lang="ja">答えと比べる</span></b><em>loss</em><span><span lang="en">4 error numbers</span><span lang="ja">誤差 4 つ</span></span></div>
     <div class="arrow">→</div>
-    <div class="box new"><b><span lang="en">Update weights</span><span lang="ja">重みを更新</span></b><span><span lang="en">a little, toward the answer</span><span lang="ja">答えに近づく方向へ少し</span></span></div>
+    <div class="box new"><b><span lang="en">Update weights</span><span lang="ja">重みを更新</span></b><em>SGD, backprop</em><span><span lang="en">a little, toward the answer</span><span lang="ja">答えに近づく方向へ少し</span></span></div>
     <div class="arrow">↺</div>
-    <div class="box"><b><span lang="en">Repeat</span><span lang="ja">繰り返す</span></b><span><span lang="en">177 batches = 1 epoch; 10 epochs, ~50 min</span><span lang="ja">177 回で 1 エポック。10 エポック、約 50 分</span></span></div>
+    <div class="box"><b><span lang="en">Repeat</span><span lang="ja">繰り返す</span></b><em>epoch</em><span><span lang="en">177 batches = 1 epoch; 10 epochs, ~50 min</span><span lang="ja">177 回で 1 エポック。10 エポック、約 50 分</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">After each epoch</span><span lang="ja">各エポックの後</span></b><span><span lang="en">run inference on the 50 test x-rays, compute mAP, save if best</span><span lang="ja">テスト 50 枚で推論して mAP。最良なら保存</span></span></div>
+    <div class="box"><b><span lang="en">After each epoch</span><span lang="ja">各エポックの後</span></b><em>mAP</em><span><span lang="en">run inference on the 50 test x-rays, compute mAP, save if best</span><span lang="ja">テスト 50 枚で推論して mAP。最良なら保存</span></span></div>
   </div>
   <h3><span lang="en">Inference flow</span><span lang="ja">推論の流れ</span> <code>infer.py</code></h3>
   <div class="pipe small">
-    <div class="box"><b><span lang="en">Saved weights</span><span lang="ja">保存した重み</span></b><span><span lang="en">epoch 5 file, frozen</span><span lang="ja">エポック 5 のファイル。固定</span></span></div>
+    <div class="box"><b><span lang="en">Saved weights</span><span lang="ja">保存した重み</span></b><em>checkpoint</em><span><span lang="en">epoch 5 file, frozen</span><span lang="ja">エポック 5 のファイル。固定</span></span></div>
     <div class="arrow">+</div>
     <div class="box"><b><span lang="en">1 x-ray</span><span lang="ja">X線 1 枚</span></b><span><span lang="en">no answer, no flip</span><span lang="ja">答えなし、反転なし</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Model answers</span><span lang="ja">モデルが答える</span></b><span><span lang="en">boxes + kind + confidence</span><span lang="ja">四角＋種類＋自信</span></span></div>
+    <div class="box"><b><span lang="en">Model answers</span><span lang="ja">モデルが答える</span></b><em>Faster R-CNN + NMS</em><span><span lang="en">boxes + kind + confidence</span><span lang="ja">四角＋種類＋自信</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Keep confidence ≥ 0.5</span><span lang="ja">自信 0.5 以上だけ残す</span></b><span><span lang="en">threshold is our choice</span><span lang="ja">しきい値は自分で決める</span></span></div>
+    <div class="box"><b><span lang="en">Keep confidence ≥ 0.5</span><span lang="ja">自信 0.5 以上だけ残す</span></b><em>threshold</em><span><span lang="en">threshold is our choice</span><span lang="ja">しきい値は自分で決める</span></span></div>
     <div class="arrow">→</div>
     <div class="box"><b><span lang="en">Draw and save</span><span lang="ja">描いて保存</span></b><span><span lang="en">about 1 second per x-ray</span><span lang="ja">1 枚 約 1 秒</span></span></div>
   </div>
