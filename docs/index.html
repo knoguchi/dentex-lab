@@ -193,6 +193,12 @@
     <div class="term"><b>Epoch · Loss</b><i><span lang="en">one pass · amount of error</span><span lang="ja">1 周 · 間違いの量</span></i>
       <span lang="en">Epoch: one pass through all 705 learning x-rays. Loss: a single number for "how wrong was the model" on them. Learning = repeating epochs to make loss go down.</span>
       <span lang="ja">エポック：学習用 705 枚を全部 1 回見ること。損失：その写真で「どれだけ間違えたか」の数。学習とは、エポックを繰り返して損失を下げること。</span></div>
+    <div class="term"><b>Backprop</b><i>Backpropagation</i>
+      <span lang="en">How weights get updated: from the loss, work backwards through the network to find which weights to nudge, and in which direction. Done after every batch.</span>
+      <span lang="ja">重みの更新のしかた。損失から逆向きにネットワークをたどり、どの重みをどちらに動かすか決める。バッチごとに行う。</span></div>
+    <div class="term"><b>NMS</b><i>Non-Maximum Suppression</i>
+      <span lang="en">The model often draws several boxes on the same tooth. NMS keeps the most confident one and drops the overlapping rest. Inference only.</span>
+      <span lang="ja">モデルは同じ歯に四角を何個も描きがち。一番自信のあるものを残し、重なる残りを消す。推論時のみ。</span></div>
     <div class="term"><b>mAP</b><i>mean Average Precision &nbsp;(0 – 1)</i>
       <span lang="en">The standard score for box-finding. A box is "right" if it overlaps the dentist's box enough and names the right problem. The score rewards few false alarms <em>and</em> few misses, averaged over the 4 kinds. <b>mAP@0.5</b> = overlap of at least half counts (easy rule). <b>mAP@[.5:.95]</b> = also demands precise box placement (strict rule).<br><em>Our 0.481 does not mean "48% correct".</em> It is one number for "few false alarms AND few misses", averaged over the 4 kinds. 1.0 = found everything, no false alarms. For cavities the model finds about half and 7 of 10 boxes it draws are false alarms, so that kind scores 0.25 and pulls the average down.</span>
       <span lang="ja">四角当ての標準スコア。歯科医の四角と十分重なり、問題の名前も合っていれば「正解」。誤報が少なく、見逃しも少ないほど高い。4 種類で平均。<b>mAP@0.5</b> ＝ 半分以上重なれば正解（ゆるい採点）。<b>mAP@[.5:.95]</b> ＝ 四角の位置の正確さも要求（厳しい採点）。<br><em>今回の 0.481 は「48% 正解」ではない。</em>「誤報が少ない、かつ見逃しが少ない」を 1 つの数にしたもので、4 種類の平均。1.0 ＝ 全部見つけて誤報ゼロ。虫歯はモデルが半分しか見つけず、描いた四角の 7 割が誤報なので 0.25。これが平均を引き下げている。</span></div>
@@ -252,27 +258,27 @@
   <p class="note" lang="ja">torchvision 版の Faster R-CNN：候補の四角を出し、1 つずつ判定する。これを使う流れが 2 つ。</p>
   <h3><span lang="en">Training flow</span><span lang="ja">学習の流れ</span> <code>train.py</code></h3>
   <div class="pipe small">
+    <div class="box"><b><span lang="en">Start: COCO-trained weights</span><span lang="ja">出発点：COCO 学習済みの重み</span></b><em>torchvision, fine-tuning</em><span><span lang="en">last part replaced, 4 classes</span><span lang="ja">最後の部分だけ 4 種類用に交換</span></span></div>
+    <div class="arrow">+</div>
     <div class="box"><b><span lang="en">4 x-rays + dentists' boxes</span><span lang="ja">X線 4 枚＋歯科医の四角</span></b><em>DENTEX</em><span><span lang="en">random left-right flip</span><span lang="ja">ランダムに左右反転</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Model guesses</span><span lang="ja">モデルが当てる</span></b><em>Faster R-CNN (ResNet-50 + FPN, RPN)</em><span><span lang="en">boxes and kinds</span><span lang="ja">四角と種類</span></span></div>
+    <div class="box"><b><span lang="en">Model guesses</span><span lang="ja">モデルが当てる</span></b><em>Faster R-CNN: ResNet-50 + FPN → RPN</em><span><span lang="en">boxes and kinds</span><span lang="ja">四角と種類</span></span></div>
     <div class="arrow">→</div>
     <div class="box"><b><span lang="en">Compare with the answer</span><span lang="ja">答えと比べる</span></b><em>loss</em><span><span lang="en">4 error numbers</span><span lang="ja">誤差 4 つ</span></span></div>
     <div class="arrow">→</div>
-    <div class="box new"><b><span lang="en">Update weights</span><span lang="ja">重みを更新</span></b><em>SGD, backprop</em><span><span lang="en">a little, toward the answer</span><span lang="ja">答えに近づく方向へ少し</span></span></div>
+    <div class="box new"><b><span lang="en">Update weights</span><span lang="ja">重みを更新</span></b><em>backprop</em><span><span lang="en">a little, toward the answer</span><span lang="ja">答えに近づく方向へ少し</span></span></div>
     <div class="arrow">↺</div>
-    <div class="box"><b><span lang="en">Repeat</span><span lang="ja">繰り返す</span></b><em>epoch</em><span><span lang="en">177 batches = 1 epoch; 10 epochs, ~50 min</span><span lang="ja">177 回で 1 エポック。10 エポック、約 50 分</span></span></div>
-    <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">After each epoch</span><span lang="ja">各エポックの後</span></b><em>mAP</em><span><span lang="en">run inference on the 50 test x-rays, compute mAP, save if best</span><span lang="ja">テスト 50 枚で推論して mAP。最良なら保存</span></span></div>
+    <div class="box"><b><span lang="en">Repeat, test, save</span><span lang="ja">繰り返し、テスト、保存</span></b><em>epoch, mAP</em><span><span lang="en">177 batches = 1 epoch. After each epoch, mAP on the 50 test x-rays; keep the best. 10 epochs, ~50 min.</span><span lang="ja">177 回で 1 エポック。毎エポック後にテスト 50 枚で mAP、最良を保存。10 エポック、約 50 分。</span></span></div>
   </div>
   <h3><span lang="en">Inference flow</span><span lang="ja">推論の流れ</span> <code>infer.py</code></h3>
   <div class="pipe small">
-    <div class="box"><b><span lang="en">Saved weights</span><span lang="ja">保存した重み</span></b><em>checkpoint</em><span><span lang="en">epoch 5 file, frozen</span><span lang="ja">エポック 5 のファイル。固定</span></span></div>
+    <div class="box"><b><span lang="en">Saved weights</span><span lang="ja">保存した重み</span></b><span><span lang="en">epoch 5 file, frozen</span><span lang="ja">エポック 5 のファイル。固定</span></span></div>
     <div class="arrow">+</div>
     <div class="box"><b><span lang="en">1 x-ray</span><span lang="ja">X線 1 枚</span></b><span><span lang="en">no answer, no flip</span><span lang="ja">答えなし、反転なし</span></span></div>
     <div class="arrow">→</div>
     <div class="box"><b><span lang="en">Model answers</span><span lang="ja">モデルが答える</span></b><em>Faster R-CNN + NMS</em><span><span lang="en">boxes + kind + confidence</span><span lang="ja">四角＋種類＋自信</span></span></div>
     <div class="arrow">→</div>
-    <div class="box"><b><span lang="en">Keep confidence ≥ 0.5</span><span lang="ja">自信 0.5 以上だけ残す</span></b><em>threshold</em><span><span lang="en">threshold is our choice</span><span lang="ja">しきい値は自分で決める</span></span></div>
+    <div class="box"><b><span lang="en">Keep confidence ≥ 0.5</span><span lang="ja">自信 0.5 以上だけ残す</span></b><span><span lang="en">threshold is our choice</span><span lang="ja">しきい値は自分で決める</span></span></div>
     <div class="arrow">→</div>
     <div class="box"><b><span lang="en">Draw and save</span><span lang="ja">描いて保存</span></b><span><span lang="en">about 1 second per x-ray</span><span lang="ja">1 枚 約 1 秒</span></span></div>
   </div>
