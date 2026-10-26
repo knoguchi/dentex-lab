@@ -60,7 +60,6 @@ Prints detections and writes an annotated image.
 - **Resizing**: we shrink images to max side 1333 in the dataset; the model's internal `GeneralizedRCNNTransform` resizes again to min_size 800 anyway, and normalizes with ImageNet stats.
 - **Augmentation**: only horizontal flip. Flipping a panoramic x-ray swaps left/right quadrants, which doesn't matter for diagnosis labels.
 - **Metric**: mAP@[.5:.95] (COCO-style). Small/rare classes (Periapical Lesion, 158 boxes) will score lowest.
-- **Not a medical device.** Research dataset, non-commercial license, small val set.
 
 ## Result of first run (10 epochs, MPS, ~50 min)
 
